@@ -39,21 +39,22 @@
 #define TEST1   LATAbits.LATA4
 #define PB1     PORTBbits.RB4
 
-int main() {
+int main() 
+{
 
-    //__builtin_disable_interrupts();
+    __builtin_disable_interrupts();
 
     // set the CP0 CONFIG register to indicate that kseg0 is cacheable (0x3)
-    //__builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583);
+    __builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583);
 
     // 0 data RAM access wait states
-    //BMXCONbits.BMXWSDRM = 0x0;
+    BMXCONbits.BMXWSDRM = 0x0;
 
     // enable multi vector interrupts
-    //INTCONbits.MVEC = 0x1;
+    INTCONbits.MVEC = 0x1;
 
     // disable JTAG to get pins back
-    //DDPCONbits.JTAGEN = 0;
+    DDPCONbits.JTAGEN = 0;
 
     // do your TRIS and LAT commands here
     TRISAbits.TRISA4 = 0;
@@ -62,24 +63,34 @@ int main() {
     
     __builtin_enable_interrupts();
     
-    int ii;
-    ii = 4;
+    int time;
+    time = 12000;
+    _CP0_SET_COUNT(0);
 
     while(1) 
     {
-        //ii++;
         if(PB1==1)
         {
-        TEST1 = 1;
+            if(_CP0_GET_COUNT()>time)
+            {
+                TEST1 = 1;
+            }
+            if(_CP0_GET_COUNT()<time)
+            {
+                TEST1 = 0;
+            }
+            if(_CP0_GET_COUNT()>2*time)
+            {
+            _CP0_SET_COUNT(0);
+            }
         }
-        if(PB1==0)
+        else
         {
             TEST1=0;
-            ii=0;
+            //_CP0_SET_COUNT(0);
         }
-        
+    }
 	// use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
 	// remember the core timer runs at half the sysclk
             
-    }
 }
